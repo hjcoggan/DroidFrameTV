@@ -2,6 +2,7 @@
 window.CleanFrameWallpapers = [
   {
     "id": "misty",
+    "place": "Big Sur, California, USA",
     "name": "Misty coast",
     "src": "assets/wallpapers/misty.jpg",
     "thumb": "assets/wallpapers/misty-thumb.jpg",

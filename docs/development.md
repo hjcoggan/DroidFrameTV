@@ -11,10 +11,10 @@ Opens http://localhost:4795/home/ on this computer. Arrow keys, Enter and Escape
 ## How it fits together
 
 - `app/index.html`, `main.js`, `style.css` are the UI, written as plain ES5 so old WebViews run it. The logical stage is 1920 x 1080, scaled to the viewport; glass geometry and the pre-rendered materials must stay aligned.
-- `app/device.js` is the only platform seam. It wraps the `AndroidTV` object that `android/.../MainActivity.java` exposes to the page: `getApps`, `launchApp`, `openSettings`, `openWifi`, `openStockHome`.
+- `app/device.js` is the only platform seam. It wraps the `AndroidTV` object that `android/.../MainActivity.java` exposes to the page: `getApps`, `launchApp`, `openSettings`, `openWifi`, `openStockHome`, `openSource` (SystemUI's Inputs picker, the remote's Input button) and `settingsIcon` / `packageIcon` (the Settings and Play Store icons).
 - `MainActivity` loads the bundled `app/` from a virtual `https://appassets.androidplatform.net/` origin (a `file://` origin blocks the UI's image probes), blocks all other requests, and maps the remote's keys to the key codes the UI expects.
 - Preferences live in `localStorage` under `cleanframe.home.v1`.
-- Wake rotation: `MainActivity` listens for screen-off and screensaver start and calls `window.onWake`, which swaps to a different wallpaper without a fade (unless the rotation mode is Fixed). The page keeps running while asleep so the image is loaded before the screen comes back.
+- Wake rotation: the TV tells the app it is going to sleep about half a second after the power press, and the panel is off within milliseconds of that, so the app watches `PowerManager.isInteractive()` every 25 ms and starts the swap the moment it turns false. `window.onWake` then loads an already-decoded next wallpaper (`prewarm()`) and swaps without a fade, so the frame the panel holds through the next wake is the new photo. The launcher does not change the wallpaper at start-up (unless Fixed rotation is off and the TV sleeps).
 - `window.onHomeIntent` resets Home when the Home button is pressed while it is open.
 
 ## Platform notes

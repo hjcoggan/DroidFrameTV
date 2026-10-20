@@ -1,0 +1,14 @@
+[
+  {
+    "file": "my-photo.jpg",
+    "id": "my-photo",
+    "name": "My photo",
+    "place": "Brisbane, Queensland, Australia"
+  },
+  {
+    "file": "another.jpg",
+    "id": "another",
+    "name": "Another photo",
+    "place": "Photo: Jane Doe on Unsplash"
+  }
+]

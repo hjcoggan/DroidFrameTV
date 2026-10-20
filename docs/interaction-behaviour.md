@@ -2,7 +2,7 @@
 
 ## Home
 
-- List (default): Up/Down scrolls the apps without wrapping. The list fades at both ends as it scrolls. The clock is at the top right and, when the photo has a location, it is shown at the bottom right.
+- List (default): Up/Down scrolls the apps without wrapping, and Left/Right do the same (Left goes up, Right goes down). The list fades at both ends as it scrolls. The clock is at the top right and, when the photo has a location, it is shown at the bottom right.
 - Dock: Left/Right scrolls the apps without wrapping. The clock is at the top left.
 - The last four entries are fixed and not part of Apps on Home: **Play Store**, **Settings**, **Input** and **All apps**. Input opens the same Inputs picker as the remote's Input button.
 - OK opens the selected item. Focus alone never launches an app.

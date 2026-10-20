@@ -582,6 +582,7 @@
   };
   function listHomeKey(t, k, i, U) {
     var f = t.f, h = homeItems();
+    if (k === 'left') k = 'up'; else if (k === 'right') k = 'down';   // the list has no side controls any more: Left/Right step like Up/Down
     if (f.zone === 'util') {
       f.u = clamp(f.u, 0, U.length - 1);
       if (k === 'up' && f.u > 0) f.u--;

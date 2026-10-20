@@ -8,8 +8,8 @@ android {
         applicationIdSuffix project.findProperty('idSuffix') ?: ''   // e.g. -PidSuffix=.shots installs beside the real app (screenshots)
         minSdk 26
         targetSdk 28   // personal sideload for Android 9, not Play
-        versionCode 2
-        versionName '1.0.0'
+        versionCode 3
+        versionName '1.0.1'
     }
     lint { disable 'ExpiredTargetSdkVersion' }
     buildTypes {

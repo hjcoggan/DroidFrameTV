@@ -99,3 +99,14 @@ CleanFrame's original code and documentation use the [MIT licence](LICENSE). Fon
 The [release review](docs/public-release.md) records the publication checks. Third-party assets retain the terms listed in their notices. CleanFrame is an independent project with no Samsung or streaming-service affiliation.
 
 [TV Detox](https://github.com/Ansub/tv-detox) is a useful example of making an agent-assisted TV project approachable. Its Android setup is a different implementation; the prompts and instructions here are written for CleanFrame and Tizen.
+
+## Android TV (Android 9+)
+
+`android/` wraps the same `app/` UI in a WebView launcher. Edit `app/device.js` and `android/app/src/main/java/app/cleanframe/tv/MainActivity.java` for platform behaviour.
+
+```sh
+cd android && ./gradlew assembleRelease   # JDK 17-21, ANDROID_HOME set
+adb install -r app/build/outputs/apk/release/app-release.apk
+```
+
+Install and check it from the app row first; only then make it the default Home. Back on Home stays on Home, and Art Mode shows the bare photo. Based on the Android approach in [qingyun7/CleanFrame-Android](https://github.com/qingyun7/CleanFrame-Android) (MIT). Untested on hardware.

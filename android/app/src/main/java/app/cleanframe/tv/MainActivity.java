@@ -273,15 +273,23 @@ public final class MainActivity extends Activity {
 
     private String appIcon(Drawable drawable) {
         if (drawable == null) return "";
-        Bitmap bitmap = Bitmap.createBitmap(96, 96, Bitmap.Config.ARGB_8888);
+        Bitmap bitmap = Bitmap.createBitmap(128, 128, Bitmap.Config.ARGB_8888);
         Canvas canvas = new Canvas(bitmap);
+        // Banner-shaped TV icons are letterboxed on their own edge colour so the circle crop stays full.
+        int iw = Math.max(1, drawable.getIntrinsicWidth()), ih = Math.max(1, drawable.getIntrinsicHeight());
+        Bitmap probe = Bitmap.createBitmap(32, Math.max(1, 32 * ih / iw), Bitmap.Config.ARGB_8888);
+        drawable.setBounds(0, 0, probe.getWidth(), probe.getHeight());
+        drawable.draw(new Canvas(probe));
+        int edge = probe.getPixel(1, 1);
+        probe.recycle();
+        if (Color.alpha(edge) > 128) canvas.drawColor(edge);
         int width = Math.max(1, drawable.getIntrinsicWidth());
         int height = Math.max(1, drawable.getIntrinsicHeight());
-        float scale = Math.min(96f / width, 96f / height);
+        float scale = Math.min(128f / width, 128f / height);
         int drawWidth = Math.max(1, Math.round(width * scale));
         int drawHeight = Math.max(1, Math.round(height * scale));
-        int x = (96 - drawWidth) / 2;
-        int y = (96 - drawHeight) / 2;
+        int x = (128 - drawWidth) / 2;
+        int y = (128 - drawHeight) / 2;
         drawable.setBounds(x, y, x + drawWidth, y + drawHeight);
         drawable.draw(canvas);
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
@@ -296,7 +304,7 @@ public final class MainActivity extends Activity {
         {"com.google.android.youtube.tv", "youtube"}, {"com.apple.atve.androidtv.appletv", "appletv"}, {"com.apple.atve.sony.appletv", "appletv"},
         {"com.amazon.amazonvideo.livingroom", "primevideo"}, {"au.net.abc.iview", "abciview"},
         {"com.sbs.ondemand.tv", "sbs"}, {"com.apple.android.music", "applemusic"},
-        {"com.spotify.tv.android", "spotify"}, {"com.wbd.stream", "hbomax"}, {"com.tubitv", "tubi"}};
+        {"com.spotify.tv.android", "spotify"}, {"com.wbd.stream", "hbomax"}, {"au.com.stan.and", "stan"}, {"com.tubitv", "tubi"}};
 
     private static int brandIndex(String pkg) {
         for (int i = 0; i < BRANDS.length; i++) if (BRANDS[i][0].equals(pkg)) return i;

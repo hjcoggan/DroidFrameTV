@@ -4,7 +4,7 @@
 
   /* ---------- Bundled data ---------- */
   var ASSETS = 'assets/', ICONS = ASSETS + 'icons/', WP = ASSETS + 'wallpapers/';
-  var CAP = 9, SCRIM_Y = 560;
+  var CAP = Infinity, SCRIM_Y = 560;
   var DOCK_MODES = { both: { tw: 288, th: 200, pitch: 296 }, text: { tw: 288, th: 104, pitch: 296 }, icons: { tw: 176, th: 144, pitch: 184 } };
   var GRID_ROW = 240, GRID_COL = 344, COLS = 5;
   var ED_ROW = 80, ED_SEP = 56, ED_VIEW = 752, STRIP_PITCH = 188;
@@ -22,7 +22,9 @@
     { id: 'primevideo', name: 'Prime Video', mark: true, appId: 'com.amazon.amazonvideo.livingroom' },
     { id: 'abciview', name: 'ABC iview', mark: true, appId: 'au.net.abc.iview' },
     { id: 'sbs', name: 'SBS On Demand', mark: true, appId: 'com.sbs.ondemand.tv' },
-    { id: 'applemusic', name: 'Apple Music', mark: true, appId: 'com.apple.android.music' }
+    { id: 'applemusic', name: 'Apple Music', mark: true, appId: 'com.apple.android.music' },
+    { id: 'hbomax', name: 'HBO Max', mark: true, appId: 'com.wbd.stream' },
+    { id: 'stan', name: 'Stan', mark: true, appId: 'au.com.stan.and' }
   ];
   var PRIMARY = PRIMARY_APPS.map(function (a) { return a.id; }), APPS = PRIMARY_APPS.slice(), ALPHA = [];
   var WALLS = window.CleanFrameWallpapers || [{ id: 'misty', name: 'Misty coast', tone: 'light', ut: { tr: 'mist', br: 'mist' }, frostVeil: .20 }];
@@ -141,10 +143,11 @@
       + (maskSupport ? '<span class="mk" style="' + st + ';-webkit-mask-image:url(' + ICONS + id + '.svg);mask-image:url(' + ICONS + id + '.svg)"></span>' : '<img alt="" src="' + ICONS + id + '.svg" style="' + st + '">') + '</span>';
   }
   function appMark(a, w, h, size) {
-    if (a.mark && (maskSupport || S.c.bg !== 'light')) return markHtml(a.brand || a.id, w, h, size);
+    /* Android: always the app's own launcher icon, as a circle (see .native-icon). */
     var words = a.name.split(/\s+/), letters = words[0].charAt(0) + (words.length > 1 ? words[1].charAt(0) : '');
+    var d = Math.min(w, h + 12), ist = 'left:' + px((w - d) / 2) + ';top:' + px((h - d) / 2) + ';width:' + px(d) + ';height:' + px(d);
     return '<span class="mark monogram' + (a.icon ? ' native-icon' : '') + '" style="width:' + w + 'px;height:' + h + 'px;font-size:' + Math.round(size * .65) + 'px"><span>' + esc(letters.toUpperCase()) + '</span>'
-      + (a.icon ? '<img alt="" data-native-icon="true" src="' + esc(a.icon) + '">' : '') + '</span>';
+      + (a.icon ? '<img alt="" data-native-icon="true" style="' + ist + '" src="' + esc(a.icon) + '">' : '') + '</span>';
   }
   function smallMark(a) { return appMark(a, 56, 44, 36); }
   var measureCanvas = document.createElement('canvas'), measureContext = measureCanvas.getContext('2d'), measureSpan = document.createElement('span');
@@ -1562,7 +1565,7 @@
       setHTML(el.sub, editStatus(hint, t.lifted ? 'Moving ' + app(t.lifted.id).name + '. OK places it, Back puts it back.' : ''));
       setHTML(el.head, headButtons([['undo', 'Undo', S.undo.length ? '' : 'is-idle', 'undo'], ['done', 'Done', '', 'check']], f.zone === 'head' ? f.h : -1, 'editor'));
       el.head.className = 's-head' + (f.zone === 'head' ? ' is-awake' : '');
-      setHTML(el.lh, 'On Home <span class="s-count">' + S.c.home.length + ' of ' + CAP + '</span>');
+      setHTML(el.lh, 'On Home <span class="s-count">' + S.c.home.length + '</span>');
       el['break'].className = 'ed-order-break' + (H.length > editorCut() ? ' is-on' : '');
       el['break'].style.top = (264 + editorCut() * ED_ROW) + 'px';
 

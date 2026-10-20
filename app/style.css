@@ -171,7 +171,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .ph-row{position:absolute;left:0;top:0;width:1200px;height:128px;transition:transform var(--t) var(--ease)}
 .ph-group{position:absolute;left:0;top:0;width:100%;height:100%;opacity:.8;transform-origin:28px 64px;transition:opacity 160ms linear,transform var(--t) var(--ease)}
 .ph-group .mark{position:absolute;left:28px;top:32px}
-.ph-name{position:absolute;left:128px;top:10px;max-width:992px;font-size:88px;line-height:104px;font-weight:600;letter-spacing:-1.8px;color:var(--ph-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(14,10,6,.32),0 3px 14px rgba(14,10,6,.24)}
+.ph-name{padding-bottom:16px;position:absolute;left:128px;top:10px;max-width:992px;font-size:88px;line-height:104px;font-weight:600;letter-spacing:-1.8px;color:var(--ph-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-shadow:0 1px 2px rgba(14,10,6,.32),0 3px 14px rgba(14,10,6,.24)}
 .f-glass .ph-row.is-focus .ph-group,.f-glass .ph-row.is-sel .ph-group{opacity:1}
 .f-glass .ph-row.is-focus .ph-name,.ph-row.is-lifted .ph-name{text-shadow:0 1px 2px rgba(14,10,6,.22)}
 .f-type .ph-group{opacity:.62}
@@ -316,7 +316,7 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 /* B: two-zone Home editor */
 .z-home,.z-other{top:216px}
 .z-other{left:1068px}
-.ed-home{position:absolute;left:112px;top:264px;width:880px;height:752px}
+.ed-home{position:absolute;left:112px;top:264px;width:880px;height:752px;overflow:hidden}
 .er{position:absolute;left:0;top:0;width:880px;height:72px;display:flex;gap:8px;transition:transform var(--t) var(--ease)}
 .er-name{flex:1;min-width:0;display:flex;align-items:center;gap:20px;padding:0 24px 0 16px;border-radius:24px;font-size:34px;font-weight:500;letter-spacing:-.5px;white-space:nowrap;transition:background-color 140ms linear}
 .er-num{width:36px;text-align:right;font-size:28px;color:var(--mute);font-variant-numeric:tabular-nums}
@@ -614,3 +614,30 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 
 /* Wallpaper swapped while the TV sleeps: no visible transition on wake. */
 .no-fade,.no-fade *{transition:none!important;animation:none!important}
+
+/* Solid focus: the selection highlight is a plain colour (--fs-bg, --fs-ink set from Settings > Focus). */
+.f-solid .plate.on-focus,.f-solid .plate.on-lift{background:var(--fs-bg);box-shadow:none}
+.f-solid .tile.is-focus,.f-solid .tile.is-lifted{color:var(--fs-ink)}
+.f-solid .ph-plate .ph-field,.f-solid .ph-plate .ph-veil,.f-solid .ph-plate::after,.f-solid .ph-plate::before{display:none}
+.f-solid .ph-plate.on-focus,.f-solid .ph-plate.on-lift{background:var(--fs-bg)}
+.f-solid .ph-row.is-focus .ph-group,.f-solid .ph-row.is-sel .ph-group,.f-solid .ph-row.is-lifted .ph-group{opacity:1}
+.f-solid .ph-row.is-focus .ph-name,.f-solid .ph-row.is-lifted .ph-name{color:var(--fs-ink);text-shadow:none}
+.f-solid .ph-list.is-compact .ph-row.is-focus::before{opacity:0}
+.f-solid .sheet .gt.is-focus,.f-solid .sheet .sc.is-focus,.f-solid .sheet .er-name.is-focus,.f-solid .sheet .eo.is-focus{background:var(--fs-bg);box-shadow:none;color:var(--fs-ink)}
+.f-solid .sheet .gt.is-focus .state,.f-solid .sheet .gt.is-focus .badge,.f-solid .sheet .er-name.is-focus .er-num,.f-solid .sheet .eo.is-focus .verb,.f-solid .sheet .eo.is-focus .badge{color:var(--fs-ink)}
+.chip{display:block;width:40px;height:40px;border-radius:50%;object-fit:cover;box-shadow:inset 0 0 0 1px rgba(128,128,128,.45)}
+.setting-section[class*="section-fcol"] .setting-choice,.setting-section[class*="section-fink"] .setting-choice{justify-content:center;padding:6px 0;min-height:60px;gap:0}
+.setting-section[class*="section-fcol"] .setting-tick,.setting-section[class*="section-fink"] .setting-tick{display:none}
+.setting-section[class*="section-fcol"] .is-applied .chip,.setting-section[class*="section-fink"] .is-applied .chip{box-shadow:0 0 0 4px var(--ink)}
+.setting-section[class*="section-fcol"] .is-focus .chip,.setting-section[class*="section-fink"] .is-focus .chip{box-shadow:0 0 0 4px var(--solid-ink)}
+.is-horizontal[class*="section-fcol"] .setting-options,.is-horizontal[class*="section-fink"] .setting-options{gap:8px}
+.detail-focus .setting-section.section-fcol1,.detail-focus .setting-section.section-fink1,.detail-focus .setting-section.section-fwash{margin-top:28px}
+.detail-focus .setting-section.section-fcol2,.detail-focus .setting-section.section-fink2{margin-top:8px}
+.section-fwash .setting-choice{gap:24px;min-height:70px}
+.wash-bar{flex:1;height:12px;border-radius:6px;background:rgba(128,128,128,.35);overflow:hidden}
+.wash-bar>span{display:block;height:100%;background:currentColor}
+
+/* Photo location, bottom right, mirroring the clock's padding */
+.place{position:absolute;right:140px;bottom:96px;max-width:1000px;font-size:30px;line-height:40px;font-weight:500;letter-spacing:-.2px;white-space:nowrap;text-align:right;color:var(--br-ink,#fffbf4);opacity:.8;text-shadow:var(--br-shadow,0 1px 3px rgba(0,0,0,.35))}
+.l-list .place{bottom:112px}
+.stage:not(.bg-photo) .place{display:none}

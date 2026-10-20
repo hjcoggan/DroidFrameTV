@@ -43,6 +43,16 @@ public final class MainActivity extends Activity {
     private volatile String lastError = "";
     private boolean pageReady;
     private volatile boolean pendingWake;
+    private boolean swapped;   // the wake wallpaper swap has been started for this sleep
+    // The system marks the TV not interactive ~0.5s before the activity is paused and the panel goes dark. Polling it lets the
+    // swap render in time to be the frame the panel holds through the next wake (the app is only told much later).
+    private final Runnable sleepWatch = new Runnable() {
+        @Override public void run() {
+            android.os.PowerManager pm = (android.os.PowerManager) getSystemService(POWER_SERVICE);
+            if (pm != null && !pm.isInteractive()) { sleepSwap(); return; }
+            handler.postDelayed(this, 25);
+        }
+    };
     private final android.os.Handler handler = new android.os.Handler();
     // Keep the page running for a moment after the activity pauses so a wallpaper swap can finish while the screen is dark.
     private final Runnable pauseRunnable = () -> {
@@ -52,8 +62,7 @@ public final class MainActivity extends Activity {
     private final android.content.BroadcastReceiver wakeReceiver = new android.content.BroadcastReceiver() {
         @Override public void onReceive(android.content.Context c, Intent i) {
             // Change the wallpaper as the TV goes to sleep so it is already new when the screen comes back.
-            pendingWake = true;
-            if (webView != null) deliverWake(true);   // the page keeps running while asleep
+            sleepSwap();   // normally already started by sleepWatch
         }
     };
 
@@ -161,6 +170,9 @@ public final class MainActivity extends Activity {
         visible = true;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         handler.removeCallbacks(pauseRunnable);
+        swapped = false;
+        handler.removeCallbacks(sleepWatch);
+        handler.postDelayed(sleepWatch, 500);
         if (webView != null) {
             dispatchVisibility();
             deliverWake(true);
@@ -170,10 +182,24 @@ public final class MainActivity extends Activity {
     }
 
     @Override protected void onPause() {
+        handler.removeCallbacks(sleepWatch);
+        sleepSwapIfAsleep();
         visible = false;
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
         if (webView != null) handler.postDelayed(pauseRunnable, 3000);
         super.onPause();
+    }
+
+    /** Start the wake wallpaper swap once per sleep. */
+    private void sleepSwap() {
+        if (swapped) return;
+        swapped = true; pendingWake = true;
+        deliverWake(true);   // the page keeps running while asleep
+    }
+
+    private void sleepSwapIfAsleep() {   // fallback if the poll missed the sleep
+        android.os.PowerManager pm = (android.os.PowerManager) getSystemService(POWER_SERVICE);
+        if (pm != null && !pm.isInteractive()) sleepSwap();
     }
 
     private void deliverWake(boolean instant) {
@@ -305,20 +331,47 @@ public final class MainActivity extends Activity {
         drawable.draw(new Canvas(probe));
         int edge = probe.getPixel(1, 1);
         probe.recycle();
-        if (Color.alpha(edge) > 128) canvas.drawColor(edge);
+        boolean flat = Color.alpha(edge) <= 128;   // transparent glyph icons (Play Store, Settings) sit on a white disc, inset to stay inside the circle
+        if (!flat) canvas.drawColor(edge); else canvas.drawColor(Color.WHITE);
         int width = Math.max(1, drawable.getIntrinsicWidth());
         int height = Math.max(1, drawable.getIntrinsicHeight());
-        float scale = Math.min(128f / width, 128f / height);
+        float scale = Math.min(128f / width, 128f / height) * (flat ? 0.68f : 1f);
         int drawWidth = Math.max(1, Math.round(width * scale));
         int drawHeight = Math.max(1, Math.round(height * scale));
         int x = (128 - drawWidth) / 2;
         int y = (128 - drawHeight) / 2;
         drawable.setBounds(x, y, x + drawWidth, y + drawHeight);
         drawable.draw(canvas);
+        bitmap = fillCircularGlyph(bitmap);
         ByteArrayOutputStream bytes = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 100, bytes);
         bitmap.recycle();
         return "data:image/png;base64," + Base64.encodeToString(bytes.toByteArray(), Base64.NO_WRAP);
+    }
+
+    /** A round glyph sitting small on a white square (common for TV system apps) is cropped and enlarged to fill the disc. */
+    private static Bitmap fillCircularGlyph(Bitmap src) {
+        int n = src.getWidth(), min = n, max = -1, minY = n, maxY = -1, count = 0;
+        int[] px = new int[n * n];
+        src.getPixels(px, 0, n, 0, 0, n, n);
+        int edge = px[2 * n + 2];
+        if (Color.alpha(edge) < 250 || Color.red(edge) < 235 || Color.green(edge) < 235 || Color.blue(edge) < 235) return src;   // only white grounds
+        for (int y = 0; y < n; y++) for (int x = 0; x < n; x++) {
+            int c = px[y * n + x];
+            if (Math.abs(Color.red(c) - 255) + Math.abs(Color.green(c) - 255) + Math.abs(Color.blue(c) - 255) > 60) {
+                count++;
+                if (x < min) min = x; if (x > max) max = x; if (y < minY) minY = y; if (y > maxY) maxY = y;
+            }
+        }
+        if (max < 0) return src;
+        int w = max - min + 1, h = maxY - minY + 1;
+        float aspect = (float) w / h, fill = (float) count / (w * h);
+        // round artwork: square bounds, about pi/4 of the box inked, and clearly smaller than the canvas
+        if (aspect < .88f || aspect > 1.14f || fill < .68f || fill > .90f || w > n * .9f || w < n * .3f) return src;
+        Bitmap out = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888);
+        new Canvas(out).drawBitmap(src, new android.graphics.Rect(min, minY, max + 1, maxY + 1), new android.graphics.Rect(0, 0, n, n), new android.graphics.Paint(android.graphics.Paint.FILTER_BITMAP_FLAG));
+        src.recycle();
+        return out;
     }
 
     // package -> brand glyph id in app/assets/icons (Primary apps first, in this order).
@@ -371,6 +424,19 @@ public final class MainActivity extends Activity {
             return result.toString();
         }
 
+        /** The TV's own Settings icon (same circular treatment as app icons), or "" if unavailable. */
+        @JavascriptInterface public String settingsIcon() {
+            try {
+                ResolveInfo ri = getPackageManager().resolveActivity(new Intent(Settings.ACTION_SETTINGS), 0);
+                return ri == null ? "" : appIcon(ri.loadIcon(getPackageManager()));
+            } catch (RuntimeException e) { return ""; }
+        }
+
+        @JavascriptInterface public String packageIcon(String pkg) {
+            try { return appIcon(getPackageManager().getApplicationIcon(pkg)); }
+            catch (Exception e) { return ""; }
+        }
+
         @JavascriptInterface public boolean launchApp(String packageName) {
             if (packageName == null || packageName.equals(getPackageName()) || !packageName.matches("[A-Za-z0-9_]+(\\.[A-Za-z0-9_]+)+")) {
                 lastError = "This app cannot be opened.";
@@ -392,6 +458,15 @@ public final class MainActivity extends Activity {
             return onUi(() -> {
                 if (startResolved(new Intent(Settings.ACTION_SETTINGS))) return true;
                 lastError = "No TV settings found.";
+                return false;
+            });
+        }
+
+        /** Sony's Input/Source picker: what the remote's Input button opens (SystemUI's "Inputs" screen). */
+        @JavascriptInterface public boolean openSource() {
+            return onUi(() -> {
+                if (startResolved(new Intent("com.android.tv.action.VIEW_INPUTS").setPackage("com.android.systemui"))) return true;
+                lastError = "No input picker found.";
                 return false;
             });
         }

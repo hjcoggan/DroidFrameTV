@@ -15,6 +15,7 @@
   window.FrameDevice = {
     launchApp: function (id, done) { invoke('launchApp', done, id); },
     settings: function (done) { invoke('openSettings', done); },
+    source: function (done) { invoke('openSource', done); },
     wifi: function (done) { invoke('openWifi', done); },
     home: function (done) { invoke('openStockHome', done); },
     art: function (done) { done({ message: 'Art Mode is built into Home on Android.' }); },

@@ -5,10 +5,11 @@ android {
     compileSdk 35
     defaultConfig {
         applicationId 'app.cleanframe.tv'
+        applicationIdSuffix project.findProperty('idSuffix') ?: ''   // e.g. -PidSuffix=.shots installs beside the real app (screenshots)
         minSdk 26
         targetSdk 28   // personal sideload for Android 9, not Play
-        versionCode 1
-        versionName '0.6.1-android'
+        versionCode 2
+        versionName '1.0.0'
     }
     lint { disable 'ExpiredTargetSdkVersion' }
     buildTypes {

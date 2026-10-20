@@ -19,6 +19,19 @@ for d in (WALL, MAT):   # clear previous local output only; the bundled default 
     for f in d.glob('local-*'):
         f.unlink()
 
+def accent(img):
+    """A vivid colour from the photo: mean of its saturated, mid-light pixels (mean of everything if there are none)."""
+    import colorsys
+    small = img.resize((64, 36), Image.Resampling.BOX)
+    picked = []
+    for r, g, b in small.getdata():
+        h, l, sat = colorsys.rgb_to_hls(r / 255, g / 255, b / 255)
+        if sat > .25 and .2 < l < .8:
+            picked.append((r, g, b))
+    if len(picked) < 20:
+        picked = list(small.getdata())
+    return '#%02x%02x%02x' % tuple(round(sum(c[i] for c in picked) / len(picked)) for i in range(3))
+
 def lum(img, box):
     return ImageStat.Stat(img.crop(box).convert('L')).mean[0] / 255
 
@@ -34,8 +47,8 @@ for e in entries:
     bg.resize((512, 288), Image.Resampling.LANCZOS).save(WALL / (LOCAL + e['id'] + '-thumb.jpg'), quality=85, subsampling=2, **extra)
     tone = 'light' if lum(bg, (0, 0, 1920, 432)) > .42 else 'dark'
     catalog.append({
-        'id': LOCAL + e['id'], 'name': e['name'], 'src': 'assets/wallpapers/%s.jpg' % (LOCAL + e['id']), 'thumb': 'assets/wallpapers/%s-thumb.jpg' % (LOCAL + e['id']),
-        'tone': tone,
+        'id': LOCAL + e['id'], 'name': e['name'], 'place': e.get('place', ''), 'src': 'assets/wallpapers/%s.jpg' % (LOCAL + e['id']), 'thumb': 'assets/wallpapers/%s-thumb.jpg' % (LOCAL + e['id']),
+        'tone': tone, 'avg': accent(bg),
         'ut': {'tr': 'mist' if lum(bg, (1216, 72, 1800, 140)) > .5 else 'light', 'br': 'mist' if lum(bg, (1216, 940, 1800, 1010)) > .5 else 'light'},
         'frostVeil': .2 if tone == 'light' else .12, 'listColumn': 0, 'dockQuiet': False,
         'clockMist': lum(bg, (140, 72, 500, 140)) > .5})

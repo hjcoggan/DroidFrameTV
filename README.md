@@ -2,7 +2,7 @@
 
 A quieter home screen for Android TV: your apps, a photograph and the time, built for the TV remote.
 
-![DroidFrameTV home screen](docs/images/cleanframe-dock.jpg)
+![DroidFrameTV home screen](docs/images/droidframetv-home.jpg)
 
 ## Credit
 

@@ -88,7 +88,7 @@ Each photo can carry an optional `place`: free text you write yourself, shown at
 ]
 ```
 
-Leave `place` out to show nothing. If your photos come from Unsplash, the photo page lists the location, and the photographer's name is in the file name. The app never looks anything up. See [assets](docs/assets.md) and the [example catalog](docs/wallpapers-catalog.example.json).
+Leave `place` out to show nothing. See [assets](docs/assets.md) and the [example catalog](docs/wallpapers-catalog.example.json).
 
 ## Layout
 

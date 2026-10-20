@@ -1,5 +1,3 @@
-# Photograph credits
+# Photograph credit
 
-The fifteen launcher photographs and their derived material images use the Unsplash License. See [the source and credit register](../../docs/asset-sources.md) for each photographer and photo page, and [SOURCES.json](wallpapers/SOURCES.json) for runtime paths.
-
-These images are launcher backgrounds. Samsung Art Mode uses its own artwork and controls.
+The bundled wallpaper "Misty coast" is by Ganapathy Kumar ([photo page](https://unsplash.com/photos/n4VMQZIkgDg)), used under the [Unsplash License](https://unsplash.com/license). `misty-thumb.jpg`, `misty-panel.jpg` and the `misty-*` files in `materials/` are derived from it. Runtime paths are in `wallpapers/SOURCES.json`.

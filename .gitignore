@@ -33,3 +33,8 @@ PP*.woff2
 /android/build/
 /android/app/build/
 /android/local.properties
+
+# Local-only wallpapers (never committed or exported)
+/wallpapers/
+/app/assets/wallpapers/local-*
+/app/assets/materials/local-*

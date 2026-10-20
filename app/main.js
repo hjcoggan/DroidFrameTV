@@ -1,4 +1,4 @@
-/* CleanFrame Home. Static materials, local preferences and public Tizen app controls. */
+/* DroidFrameTV Home (from CleanFrame by Nathan Clark). Static materials, local preferences and Android app controls. */
 (function () {
   'use strict';
 
@@ -31,7 +31,7 @@
   var ADAPTIVE_INK = window.CleanFrameAdaptiveInk || {};
   WALLS.forEach(function (w) { w.ut = w.ut || { tr: 'light', br: 'light' }; w.frostVeil = w.frostVeil || .12; });
   var MODES = [
-    { id: 'fixed', name: 'Fixed', min: 0 }, { id: 'open', name: 'Each time Home opens', min: 0 },
+    { id: 'fixed', name: 'Fixed', min: 0 }, { id: 'open', name: 'Each time the TV wakes', min: 0 },
     { id: '5', name: 'Every 5 minutes', min: 5 }, { id: '15', name: 'Every 15 minutes', min: 15 },
     { id: '60', name: 'Every hour', min: 60 }
   ];
@@ -344,12 +344,12 @@
     if (!h.length) h = PRIMARY.slice();
     (Array.isArray(s.recent) ? s.recent : []).forEach(function (id) { if (safeId(id) && app(id) && h.indexOf(id) < 0 && recent.indexOf(id) < 0 && recent.length < 5) recent.push(id); });
     return {
-      bg: pick(modern.bg, LOOK_VALUES.bg, legacyList ? 'dark' : 'photo'), layout: pick(modern.layout, LOOK_VALUES.layout, legacyList ? 'list' : 'dock'),
+      bg: pick(modern.bg, LOOK_VALUES.bg, legacyList || !window.CleanFrameWallpapers ? 'dark' : 'photo'), layout: pick(modern.layout, LOOK_VALUES.layout, legacyList ? 'list' : 'dock'),
       apps: pick(modern.apps, LOOK_VALUES.apps, legacyList ? 'text' : 'both'), controls: pick(modern.controls, LOOK_VALUES.controls, 'both'),
       focus: pick(modern.focus, LOOK_VALUES.focus, legacyList ? 'type' : 'glass'), material: pick(modern.material, LOOK_VALUES.material, 'soft'),
       font: pick(modern.font, LOOK_VALUES.font, 'manrope'), wall: wall(modern.wall || s.wallpaper) ? modern.wall || s.wallpaper : WALLS[0].id,
       home: h, recent: recent, lastApp: h.indexOf(s.lastApp) >= 0 ? s.lastApp : h[0],
-      mode: pick(s.mode, MODES.map(function (m) { return m.id; }), 'fixed')
+      mode: pick(s.mode, MODES.map(function (m) { return m.id; }), 'open')
     };
   }
   function serialise(c) {
@@ -1034,7 +1034,7 @@
   function render() {
     var t = top(), sheet = !!V[t.id].sheet, shown = wall(S.shown ? S.shown.wall : S.c.wall), palette = ADAPTIVE_INK[shown.id];
     var adaptive = applyAdaptiveInk(palette), tr = adaptive && palette.tr ? palette.tr.pol : shown.ut.tr, br = adaptive && palette.br ? palette.br.pol : shown.ut.br;
-    stage.className = 'stage bg-' + S.c.bg + ' l-' + S.c.layout + ' v-' + S.variant + ' m-' + (materialApplies() ? S.c.material : 'none') + ' f-' + S.c.focus + ' a-' + S.c.apps + ' u-' + S.c.controls + ' g-' + S.geom + ' tone-' + shown.tone + ' tr-' + tr + ' br-' + br + wallClasses(shown) + inkRungClasses(palette, adaptive) + ' at-' + t.id + ' font-' + homeFont() + (homeFont() !== 'manrope' ? ' font-custom' : '') + (S.fontSwitch ? ' is-font-switch' : '') + (adaptive ? ' has-adaptive-ink adaptive-tl-' + palette.tl.pol : '') + (!adaptive && shown.clockInk ? ' has-clock-ink' : '') + (!adaptive && shown.dockClockInk ? ' has-dock-clock-ink' : '') + (registeredMaterial(shown.id) ? ' registered-material' : '') + (sheet ? ' is-sheet' : '') + (S.reflow ? ' is-reflow' : '');
+    stage.className = 'stage bg-' + S.c.bg + ' l-' + S.c.layout + ' v-' + S.variant + ' m-' + (materialApplies() ? S.c.material : 'none') + ' f-' + S.c.focus + ' a-' + S.c.apps + ' u-' + S.c.controls + ' g-' + S.geom + ' tone-' + shown.tone + ' tr-' + tr + ' br-' + br + wallClasses(shown) + inkRungClasses(palette, adaptive) + ' at-' + t.id + ' font-' + homeFont() + (homeFont() !== 'manrope' ? ' font-custom' : '') + (S.fontSwitch ? ' is-font-switch' : '') + (adaptive ? ' has-adaptive-ink adaptive-tl-' + palette.tl.pol : '') + (!adaptive && shown.clockInk ? ' has-clock-ink' : '') + (!adaptive && shown.dockClockInk ? ' has-dock-clock-ink' : '') + (registeredMaterial(shown.id) ? ' registered-material' : '') + (sheet ? ' is-sheet' : '') + (S.reflow ? ' is-reflow' : '') + (S.noFade ? ' no-fade' : '');
     if (!adaptive && shown.clockInk) stage.style.setProperty('--clock-ink', shown.clockInk);
     else stage.style.removeProperty('--clock-ink');
     if (!adaptive && shown.dockClockInk) stage.style.setProperty('--dock-clock-ink', shown.dockClockInk);
@@ -1892,6 +1892,15 @@
   QA.activate = function (action) { return activate(action) ? QA.state() : null; };
   QA.actions = function () { var view = isSettingsDetail(top()) ? appearanceEl : sheetEl.hidden ? homeEl : sheetEl; return Array.prototype.filter.call(view.querySelectorAll('[data-action]'), renderedAction).map(function (el) { return el.getAttribute('data-action'); }); };
 
+  /* Android calls this when the TV wakes (screen on / screensaver ends): pick a different wallpaper unless Fixed. */
+  window.onWake = function (instant) {
+    var i;
+    if (S.c.bg !== 'photo' || S.c.mode === 'fixed' || WALLS.length < 2 || S.pending) return;
+    do { i = Math.floor(Math.random() * WALLS.length); } while (WALLS[i].id === S.c.wall);
+    /* Swap without the crossfade: the TV is asleep, or has just woken and must already show the new photo. */
+    if (instant) { S.noFade = true; setTimeout(function () { S.noFade = false; render(); }, 2500); }
+    setLook({ wall: WALLS[i].id }, { row: 'bg' });
+  };
   window.onHomeIntent = function () { goScene('home'); after(); updateClock(); };
 
   /* ---------- Start ---------- */

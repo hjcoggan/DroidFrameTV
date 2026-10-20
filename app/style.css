@@ -611,3 +611,6 @@ html,body{width:100%;height:100%;overflow:hidden;background:#000}
 .setting-choice .badge{margin-right:16px}
 .setting-copy{padding-left:6px}
 }
+
+/* Wallpaper swapped while the TV sleeps: no visible transition on wake. */
+.no-fade,.no-fade *{transition:none!important;animation:none!important}

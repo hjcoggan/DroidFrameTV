@@ -42,6 +42,20 @@ public final class MainActivity extends Activity {
     private volatile boolean visible;
     private volatile String lastError = "";
     private boolean pageReady;
+    private volatile boolean pendingWake;
+    private final android.os.Handler handler = new android.os.Handler();
+    // Keep the page running for a moment after the activity pauses so a wallpaper swap can finish while the screen is dark.
+    private final Runnable pauseRunnable = () -> {
+        if (webView == null) return;
+        dispatchVisibility();   // not webView.onPause(): resuming a paused WebView left the screen blank for seconds on wake
+    };
+    private final android.content.BroadcastReceiver wakeReceiver = new android.content.BroadcastReceiver() {
+        @Override public void onReceive(android.content.Context c, Intent i) {
+            // Change the wallpaper as the TV goes to sleep so it is already new when the screen comes back.
+            pendingWake = true;
+            if (webView != null) deliverWake(true);   // the page keeps running while asleep
+        }
+    };
 
     @Override public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -87,6 +101,9 @@ public final class MainActivity extends Activity {
                 }
             }
         });
+        android.content.IntentFilter wake = new android.content.IntentFilter(Intent.ACTION_SCREEN_OFF);
+        wake.addAction(Intent.ACTION_DREAMING_STARTED);
+        registerReceiver(wakeReceiver, wake);
         setContentView(webView);
         immersive();
         webView.loadUrl(START_URL);
@@ -143,9 +160,10 @@ public final class MainActivity extends Activity {
         super.onResume();
         visible = true;
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        handler.removeCallbacks(pauseRunnable);
         if (webView != null) {
-            webView.onResume();
             dispatchVisibility();
+            deliverWake(true);
             webView.requestFocus();
         }
         immersive();
@@ -154,11 +172,14 @@ public final class MainActivity extends Activity {
     @Override protected void onPause() {
         visible = false;
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
-        if (webView != null) {
-            dispatchVisibility();
-            webView.onPause();
-        }
+        if (webView != null) handler.postDelayed(pauseRunnable, 3000);
         super.onPause();
+    }
+
+    private void deliverWake(boolean instant) {
+        if (webView == null || !pageReady || !pendingWake) return;
+        pendingWake = false;
+        webView.evaluateJavascript("if(typeof window.onWake==='function'){window.onWake(true);}", null);
     }
 
     private void dispatchVisibility() {
@@ -222,6 +243,8 @@ public final class MainActivity extends Activity {
     }
 
     @Override protected void onDestroy() {
+        try { unregisterReceiver(wakeReceiver); } catch (RuntimeException ignored) {}
+        handler.removeCallbacks(pauseRunnable);
         if (webView != null) {
             webView.removeJavascriptInterface("AndroidTV");
             webView.stopLoading();

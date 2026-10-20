@@ -1790,10 +1790,12 @@
     after();
   }
   function fit() {
-    var scale = Math.min(window.innerWidth / 1920, window.innerHeight / 1080);
+    /* Android WebView reports innerWidth at device pixels but lays out at dp, so measure the real viewport. */
+    var vw = document.documentElement.clientWidth || window.innerWidth, vh = document.documentElement.clientHeight || window.innerHeight;
+    var scale = Math.min(vw / 1920, vh / 1080);
     stage.style.transform = 'scale(' + scale + ')';
-    stage.style.left = ((window.innerWidth - 1920 * scale) / 2) + 'px';
-    stage.style.top = ((window.innerHeight - 1080 * scale) / 2) + 'px';
+    stage.style.left = ((vw - 1920 * scale) / 2) + 'px';
+    stage.style.top = ((vh - 1080 * scale) / 2) + 'px';
   }
   function renderedAction(el) {
     return el.getClientRects().length > 0 && window.getComputedStyle(el).visibility !== 'hidden';
@@ -1894,4 +1896,5 @@
   initialise();
   setLook({}, { transient: true, startup: true });
   norm(); render(); fit(); focusStage(); updateClock(); syncRotation();
+  if (window.AndroidTV) refreshCatalog();
 })();

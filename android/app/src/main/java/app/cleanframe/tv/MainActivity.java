@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 
 /** Offline Android host for the independently packaged CleanFrame interface. */
 public final class MainActivity extends Activity {
-    private static final String ASSET_ROOT = "file:///android_asset/";
+    private static final String ASSET_ROOT = "https://appassets.androidplatform.net/";   // virtual origin: file:// blocks the UI's CORS image probes
     private static final String START_URL = ASSET_ROOT + "index.html";
     private WebView webView;
     private volatile boolean visible;
@@ -55,7 +55,7 @@ public final class MainActivity extends Activity {
         webView.setFocusableInTouchMode(true);
         webView.getSettings().setJavaScriptEnabled(true);
         webView.getSettings().setDomStorageEnabled(true);
-        webView.getSettings().setAllowFileAccess(true);
+        webView.getSettings().setAllowFileAccess(false);
         webView.getSettings().setAllowContentAccess(false);
         webView.getSettings().setAllowFileAccessFromFileURLs(false);
         webView.getSettings().setAllowUniversalAccessFromFileURLs(false);
@@ -74,7 +74,8 @@ public final class MainActivity extends Activity {
             }
             @Override public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest request) {
                 String url = request.getUrl().toString();
-                if (localAsset(url) || url.startsWith("data:")) return null;
+                if (url.startsWith("data:")) return null;
+                if (localAsset(url)) return serveAsset(url);
                 return new WebResourceResponse("text/plain", "UTF-8", 403, "Blocked",
                         java.util.Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
             }
@@ -89,6 +90,34 @@ public final class MainActivity extends Activity {
         setContentView(webView);
         immersive();
         webView.loadUrl(START_URL);
+    }
+
+    private WebResourceResponse serveAsset(String url) {
+        String path = Uri.parse(url).getPath();
+        if (path == null || path.equals("/")) path = "/index.html";
+        try {
+            java.io.InputStream in = getAssets().open(path.substring(1));
+            String ext = path.substring(path.lastIndexOf('.') + 1).toLowerCase();
+            String mime;
+            switch (ext) {
+                case "html": mime = "text/html"; break;
+                case "js": mime = "application/javascript"; break;
+                case "css": mime = "text/css"; break;
+                case "svg": mime = "image/svg+xml"; break;
+                case "png": mime = "image/png"; break;
+                case "jpg": case "jpeg": mime = "image/jpeg"; break;
+                case "woff2": mime = "font/woff2"; break;
+                case "woff": mime = "font/woff"; break;
+                case "ttf": mime = "font/ttf"; break;
+                case "otf": mime = "font/otf"; break;
+                case "json": mime = "application/json"; break;
+                default: mime = "application/octet-stream";
+            }
+            return new WebResourceResponse(mime, "UTF-8", in);
+        } catch (java.io.IOException e) {
+            return new WebResourceResponse("text/plain", "UTF-8", 404, "Not found",
+                    java.util.Collections.emptyMap(), new ByteArrayInputStream(new byte[0]));
+        }
     }
 
     private static boolean localAsset(String url) {

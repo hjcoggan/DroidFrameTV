@@ -334,12 +334,13 @@
       if (!a || !safeId(a.id) || !safeId(a.appId) || typeof a.name !== 'string' || !a.name.trim() || app(a.id)) return;
       APPS.push({ id: a.id, appId: a.appId, name: a.name.slice(0, 160), brand: ['hbomax', 'spotify', 'tubi'].indexOf(a.brand) >= 0 ? a.brand : '', icon: safeIcon(a.icon) });
     });
-    (Array.isArray(s.home) ? s.home : Array.isArray(s.dock) ? s.dock : []).forEach(function (id) {
+    var saved0 = Array.isArray(s.home) ? s.home : Array.isArray(s.dock) ? s.dock : [];
+    (saved0.length ? saved0 : DEFAULT_HOME).forEach(function (id) {
       if (!safeId(id) || h.indexOf(id) >= 0 || h.length >= CAP) return;
       if (!app(id) && id.indexOf('.') > 0) APPS.push({ id: id, appId: id, name: id.split('.').pop() });
       if (app(id)) h.push(id);
     });
-    if (!h.length) h = DEFAULT_HOME.slice();
+    if (!h.length) h = PRIMARY.slice();
     (Array.isArray(s.recent) ? s.recent : []).forEach(function (id) { if (safeId(id) && app(id) && h.indexOf(id) < 0 && recent.indexOf(id) < 0 && recent.length < 5) recent.push(id); });
     return {
       bg: pick(modern.bg, LOOK_VALUES.bg, legacyList || !window.CleanFrameWallpapers ? 'dark' : 'photo'), layout: pick(modern.layout, LOOK_VALUES.layout, 'list'),

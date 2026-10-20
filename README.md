@@ -77,7 +77,7 @@ The web UI in `app/` is bundled into the APK unchanged. See [development](docs/d
 
 ## Your own wallpapers
 
-The repo ships one wallpaper, "Misty coast" ([credit](app/assets/PHOTO-CREDIT.md)). To use your own without committing them, put photos in `wallpapers/` with a `catalog.json`, then run `python3 scripts/local-wallpapers.py`. Photos are cropped to fill the screen and kept out of git.
+The repo ships one wallpaper, "Misty coast" ([credit](app/assets/PHOTO-CREDIT.md)). To use your own, put photos in `wallpapers/` with a `catalog.json`, then run `python3 scripts/local-wallpapers.py`. Photos are cropped to fill the screen.
 
 Each photo can carry an optional `place`: free text you write yourself, shown at the bottom right of Home while that photo is on screen. Use it for a location or a photo credit:
 

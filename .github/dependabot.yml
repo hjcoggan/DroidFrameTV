@@ -1,0 +1,29 @@
+version: 2
+updates:
+  # Android app dependencies and the Gradle wrapper
+  - package-ecosystem: gradle
+    directory: /android
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5
+    ignore:
+      # The wrapper is pinned to 8.13 because newer Gradle releases do not work with the Android Gradle plugin used here.
+      - dependency-name: gradle
+        update-types: ["version-update:semver-major", "version-update:semver-minor"]
+      # Moving the Android Gradle plugin needs a matching Gradle and build-tools change: do it by hand.
+      - dependency-name: com.android.application
+        update-types: ["version-update:semver-major"]
+
+  # Dev tooling (browser preview and glass material builder)
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3
+
+  # Actions used by the build workflow
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    open-pull-requests-limit: 3

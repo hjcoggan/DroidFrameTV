@@ -293,7 +293,7 @@ public final class MainActivity extends Activity {
     // package -> brand glyph id in app/assets/icons (Primary apps first, in this order).
     private static final String[][] BRANDS = {
         {"com.stremio.one", "stremio"}, {"com.netflix.ninja", "netflix"}, {"com.disney.disneyplus", "disneyplus"},
-        {"com.google.android.youtube.tv", "youtube"}, {"com.apple.atve.androidtv.appletv", "appletv"},
+        {"com.google.android.youtube.tv", "youtube"}, {"com.apple.atve.androidtv.appletv", "appletv"}, {"com.apple.atve.sony.appletv", "appletv"},
         {"com.amazon.amazonvideo.livingroom", "primevideo"}, {"au.net.abc.iview", "abciview"},
         {"com.sbs.ondemand.tv", "sbs"}, {"com.apple.android.music", "applemusic"},
         {"com.spotify.tv.android", "spotify"}, {"com.wbd.stream", "hbomax"}, {"com.tubitv", "tubi"}};
@@ -305,7 +305,9 @@ public final class MainActivity extends Activity {
 
     private int appRank(String pkg) {
         int i = brandIndex(pkg);
-        return i < 0 ? 30 : i < 9 ? i : 20;
+        if (i < 0) return 30;
+        for (int j = 0; j <= i; j++) if (BRANDS[j][1].equals(BRANDS[i][1])) return j < 10 ? j : 20;   // aliases share a slot
+        return 20;
     }
 
     public final class TvBridge {

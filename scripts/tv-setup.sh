@@ -22,8 +22,9 @@ ME=app.cleanframe.tv
 # Replaced by CleanFrame (the stock launcher and its recommendation rows).
 LAUNCHER="com.google.android.tvlauncher com.google.android.tvrecommendations"
 # Optional bloat: promos, store fronts, setup/hotel/serial-port helpers, help, Living Decor, smart speaker setup.
+# Not com.sony.dtv.b2b.hotelmode: the TV app reads its settings provider, and live TV's channel banner stops hiding without it.
 BLOAT="com.sony.dtv.sonyselect com.sony.dtv.promos com.sony.dtv.livingfit com.sony.dtv.seeds.iot
-com.sony.dtv.b2b.hotelmode com.sony.dtv.b2b.rs232csupport com.sony.dtv.broadcastservicesetup
+com.sony.dtv.b2b.rs232csupport com.sony.dtv.broadcastservicesetup
 com.sony.dtv.smarthelp com.sony.dtv.helpguidecontents com.sony.dtv.sonybugreportsys"
 
 a() { "$ADB" -s "$TV:5555" "$@"; }
@@ -42,13 +43,15 @@ apply)
   a shell cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.HOME | grep -q "$ME" \
     || { echo "DroidFrameTV is not registered as a home screen. Aborting before touching anything."; exit 1; }
   a shell cmd package set-home-activity "$ME/.MainActivity"
+  # Earlier versions disabled this; turn it back on.
+  installed com.sony.dtv.b2b.hotelmode && a shell pm enable com.sony.dtv.b2b.hotelmode >/dev/null
   for p in $LAUNCHER $BLOAT; do
     if installed "$p"; then a shell pm disable-user --user 0 "$p" >/dev/null && echo "disabled $p"; fi
   done
   a shell input keyevent KEYCODE_HOME
   echo "Done. Press Home on the remote: it should open DroidFrameTV." ;;
 restore)
-  for p in $LAUNCHER $BLOAT; do
+  for p in $LAUNCHER $BLOAT com.sony.dtv.b2b.hotelmode; do
     if installed "$p"; then a shell pm enable "$p" >/dev/null && echo "enabled $p"; fi
   done
   echo "Restored. If Home still opens CleanFrame, choose a different default in Settings > Apps > Default apps (or reinstall)." ;;
